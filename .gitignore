@@ -1,0 +1,19 @@
+# Build output
+.gradle/
+.kotlin/
+build/
+app/build/
+out/
+*.apk
+*.aab
+
+# IDE and local config
+local.properties
+.idea/
+*.iml
+.vscode/
+captures/
+
+# OS and misc
+.DS_Store
+*.log

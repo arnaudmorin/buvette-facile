@@ -14,6 +14,14 @@ data class PriceBox(
 ) {
     fun contains(p: Offset) = p.x in left..right && p.y in top..bottom
 
+    fun movedBy(delta: Offset): PriceBox {
+        val w = right - left
+        val h = bottom - top
+        val l = (left + delta.x).coerceIn(0f, 1f - w)
+        val t = (top + delta.y).coerceIn(0f, 1f - h)
+        return copy(left = l, top = t, right = l + w, bottom = t + h)
+    }
+
     fun displayText() = if (label.isBlank()) formatEuro(cents) else "$label\n${formatEuro(cents)}"
 }
 

@@ -53,6 +53,8 @@ fun EditScreen(
     var boxes by remember { mutableStateOf(initialBoxes) }
     var dragStart by remember { mutableStateOf<Offset?>(null) }
     var dragCurrent by remember { mutableStateOf<Offset?>(null) }
+    var movingId by remember { mutableStateOf<Long?>(null) }
+    var lastDragPos by remember { mutableStateOf(Offset.Zero) }
     var dialog by remember { mutableStateOf<EditDialog?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -94,14 +96,34 @@ fun EditScreen(
                 bitmap = bitmap,
                 boxes = boxes,
                 draft = draft,
+                highlightedId = movingId,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 onTap = { p -> boxes.lastOrNull { it.contains(p) }?.let { dialog = EditDialog.Existing(it) } },
-                onDragStart = { p -> dragStart = p; dragCurrent = p },
-                onDrag = { p -> dragCurrent = p },
+                onDragStart = { p ->
+                    val hit = boxes.lastOrNull { it.contains(p) }
+                    if (hit != null) {
+                        movingId = hit.id
+                        lastDragPos = p
+                    } else {
+                        dragStart = p
+                        dragCurrent = p
+                    }
+                },
+                onDrag = { p ->
+                    val id = movingId
+                    if (id != null) {
+                        val delta = p - lastDragPos
+                        lastDragPos = p
+                        boxes = boxes.map { if (it.id == id) it.movedBy(delta) else it }
+                    } else {
+                        dragCurrent = p
+                    }
+                },
                 onDragEnd = {
                     draft?.let { r ->
                         if (abs(r.width) >= MIN_BOX_SIZE && abs(r.height) >= MIN_BOX_SIZE) dialog = EditDialog.New(r)
                     }
+                    movingId = null
                     dragStart = null
                     dragCurrent = null
                 },

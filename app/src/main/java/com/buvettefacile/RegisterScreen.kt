@@ -45,12 +45,14 @@ fun RegisterScreen(
     onEdit: () -> Unit,
     onRestart: () -> Unit,
 ) {
-    var entries by remember { mutableStateOf(listOf<Int>()) }
+    var entries by remember { mutableStateOf(listOf<Long>()) }
     var highlightedId by remember { mutableStateOf<Long?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
     var confirmRestart by remember { mutableStateOf(false) }
-    val total = entries.sum()
+    val priceById = boxes.associate { it.id to it.cents }
+    val total = entries.sumOf { priceById[it] ?: 0 }
+    val counts = entries.groupingBy { it }.eachCount()
 
     LaunchedEffect(tapCount) {
         if (tapCount > 0) {
@@ -98,10 +100,11 @@ fun RegisterScreen(
                 bitmap = bitmap,
                 boxes = boxes,
                 highlightedId = highlightedId,
+                counts = counts,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 onTap = { p ->
                     boxes.lastOrNull { it.contains(p) }?.let { box ->
-                        entries = entries + box.cents
+                        entries = entries + box.id
                         highlightedId = box.id
                         tapCount++
                     }

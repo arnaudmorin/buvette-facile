@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import kotlin.math.min
@@ -51,6 +53,7 @@ fun PosterCanvas(
     boxes: List<PriceBox>,
     modifier: Modifier = Modifier,
     highlightedId: Long? = null,
+    counts: Map<Long, Int> = emptyMap(),
     draft: Rect? = null,
     onTap: ((Offset) -> Unit)? = null,
     onDragStart: ((Offset) -> Unit)? = null,
@@ -69,6 +72,8 @@ fun PosterCanvas(
         textAlign = TextAlign.Center,
         shadow = Shadow(Color.Black, blurRadius = 6f),
     )
+    val badgeStyle = TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    val badgeRadius = with(LocalDensity.current) { 12.dp.toPx() }
 
     Canvas(
         modifier
@@ -109,6 +114,14 @@ fun PosterCanvas(
                 layout,
                 topLeft = Offset(r.center.x - layout.size.width / 2f, r.center.y - layout.size.height / 2f),
             )
+            val count = counts[box.id] ?: 0
+            if (count > 0) {
+                val center = Offset(r.left + badgeRadius, r.top + badgeRadius)
+                drawCircle(Color(0xFFD32F2F), badgeRadius, center)
+                drawCircle(Color.White, badgeRadius, center, style = Stroke(2f))
+                val badge = textMeasurer.measure(count.toString(), badgeStyle)
+                drawText(badge, topLeft = Offset(center.x - badge.size.width / 2f, center.y - badge.size.height / 2f))
+            }
         }
 
         draft?.let { d ->
